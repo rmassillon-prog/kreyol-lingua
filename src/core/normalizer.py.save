@@ -1,0 +1,278 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple
+import re
+
+from src.core.segmenter import Segmenter
+
+
+@dataclass(frozen=True)
+
+
+
+        # pronoun?
+        pronoun_tag = self.pronoun_mapper.normalize(normalized)
+        if pronoun_tag:
+            canonical = self.pronoun_mapper.get_canonical_form(norpython -m pytest
+class PronounTag:
+    value: str
+    def __str__(self) -> str:
+        return self.value
+
+
+@dataclass(frozen=True)
+class TAMTag:
+    value: str
+    def __str__(self) -> str:
+        return self.value
+
+
+@dataclass
+class Token:
+    original: str
+    normalized: str
+    position: int
+    source_span: Tuple[int, int]
+
+    pronoun_tag: Optional[PronounTag] = None
+    tam_tag: Optional[TAMTag] = None
+
+    is_segmented: bool = False
+    original_fused_form: Optional[str] = None
+    segment_index: Optional[int] = None
+
+    is_unknown: bool = False
+    note: Optional[str] = None
+
+    def __str__(self) -> str:
+        if self.pronoun_tag:
+            return f"{self.normalized}[{self.pronoun_tag}]"
+        if self.tam_tag:
+            return f"{self.normalized}[{self.tam_tag}]"
+        return self.normalized
+
+
+@dataclass
+class NormalizationResult:
+    original_text: str
+    tokens: List[Token]
+    warnings: List[str]
+    unknown_forms: List[str]
+
+    def get_normalized_text(self) -> str:
+        return " ".join(t.normalized for t in self.tokens)
+
+    def get_source_text_for_token(self, token: Token) -> str:
+        s, e = token.source_span
+        return self.original_text[s:e]
+
+    def visualize_alignment(self) -> str:
+        lines: List[str] = []
+        lines.append("ALIGNMENT VISUALIZATION")
+        lines.append("=" * 60)
+        lines.append(f"Original:   {self.original_text}")
+        lines.append(f"Normalized: {self.get_normalized_text()}")
+        lines.append("")
+        lines.append("Token Mapping:")
+        lines.append("-" * 60)
+
+        for token in self.tokens:
+            src = self.get_source_text_for_token(token)
+            s, e = token.source_span
+            seg = ""
+            if token.is_segmented:
+                seg = f" [seg {token.segment_index} of '{token.original_fused_form}']"
+            lines.append(f"  [{s:3d}:{e:3d}] '{src}' → '{token.normalized}'{seg}")
+
+        return "\n".join(lines)
+
+
+class PronounMapper:
+    TAGS = {
+        "mwen": "PRON_1SG",
+        "m": "PRON_1SG",
+        "ou": "PRON_2SG",
+        "w": "PRON_2SG",
+        "li": "PRON_3SG",
+        "l": "PRON_3SG",
+        "nou": "PRON_1PL",
+        "n": "PRON_1PL",
+        "yo": "PRON_3PL",
+        "y": "PRON_3PL",
+    }
+
+    CANONICAL = {
+        "PRON_1SG": "m",
+        "PRON_2SG": "ou",
+        "PRON_3SG": "li",
+        "PRON_1PL": "nou",
+        "PRON_3PL": "yo",
+    }
+
+    def normalize(self, word: str) -> Optional[PronounTag]:
+        tag = self.TAGS.get(word)
+        return PronounTag(tag) if tag else None
+
+    def canonical(self, word: str) -> str:
+        tag = self.TAGS.get(word)
+        if not tag:
+            return word
+        return self.CANONICAL.get(tag, word)
+
+
+class TAMMapper:
+    TAGS = {
+        "ap": "TAM_PROG",
+        "te": "TAM_PAST",
+        "pral": "TAM_PROSP",
+        "ta": "TAM_COND",
+    }
+
+    CANONICAL = {
+        "TAM_PROG": "ap",
+        "TAM_PAST": "te",
+        "TAM_PROSP": "pral",
+        "TAM_COND": "ta",
+    }
+
+    def normalize(self, word: str) -> Optional[TAMTag]:
+        tag = self.TAGS.get(word)
+        return TAMTag(tag) if tag else None
+
+    def canonical(self, word: str) -> str:
+        tag = self.TAGS.get(word)
+        if not tag:
+            return word
+        return self.CANONICAL.get(tag, word)
+
+
+class Normalizer:
+    def __init__(self, enable_segmentation: bool = True) -> None:
+        self.pronoun_mapper = PronounMapper()
+        self.tam_mapper = TAMMapper()
+        self.segmenter = Segmenter()
+        self.enable_segmentation = enable_segmentation
+
+        self.spelling_normalizations = {"moin": "mwen"}
+
+    def normalize(self, text: str) -> NormalizationResult:
+        raw = self._tokenize_with_positions(text)
+
+        tokens: List[Token] = []
+        warnings: List[str] = []
+        unknown: List[str] = []
+
+        out_pos = 0  # output token position (changes with segmentation)
+
+        for info in raw:
+            surface = info["text"]
+            start, end = info["start"], info["end"]
+
+            # Segmentation: one surface token -> many output tokens
+            if self.enable_segmentation:
+                seg = self.segmenter.segment(surface)
+            else:
+                seg = None
+
+            if seg and seg.is_valid:
+                for seg_idx, piece in enumerate(seg.segments):
+                    t = self._normalize_token(
+                        word=piece,
+                        position=out_pos,
+                        start=start,
+                        end=end,
+                        is_segmented=True,
+                        original_fused_form=surface,
+                        segment_index=seg_idx,
+                    )
+                    tokens.append(t)
+                    if t.is_unknown:
+                        unknown.append(t.original)
+                    out_pos += 1
+            else:
+                t = self._normalize_token(surface, out_pos, start, end)
+                tokens.append(t)
+                if t.is_unknown:
+                    unknown.append(t.original)
+                out_pos += 1
+
+        warnings.extend(self._validate_clitics(tokens))
+
+        return NormalizationResult(
+            original_text=text,
+            tokens=tokens,
+            warnings=warnings,
+            unknown_forms=unknown,
+        )
+
+    def _tokenize_with_positions(self, text: str) -> List[Dict[str, Any]]:
+        pattern = r"\S+"
+        out: List[Dict[str, Any]] = []
+        pos = 0
+        for m in re.finditer(pattern, text):
+            out.append({"text": m.group(), "start": m.start(), "end": m.end(), "position": pos})
+            pos += 1
+        return out
+
+    def _normalize_token(
+        self,
+        word: str,
+        position: int,
+        start: int,
+        end: int,
+        is_segmented: bool = False,
+        original_fused_form: Optional[str] = None,
+        segment_index: Optional[int] = None,
+    ) -> Token:
+        original = word
+        normalized = word.lower()
+
+        if normalized in self.spelling_normalizations:
+            normalized = self.spelling_normalizations[normalized]
+
+        pron = self.pronoun_mapper.normalize(normalized)
+        if pron:
+            return Token(
+                original=original,
+                normalized=self.pronoun_mapper.canonical(normalized),
+                position=position,
+                source_span=(start, end),
+                pronoun_tag=pron,
+                is_segmented=is_segmented,
+                original_fused_form=original_fused_form,
+                segment_index=segment_index,
+            )
+
+        tam = self.tam_mapper.normalize(normalized)
+        if tam:
+            return Token(
+                original=original,
+                normalized=self.tam_mapper.canonical(normalized),
+                position=position,
+                source_span=(start, end),
+                tam_tag=tam,
+                is_segmented=is_segmented,
+                original_fused_form=original_fused_form,
+                segment_index=segment_index,
+            )
+
+        is_unknown_flag = self._is_likely_unknown(normalized)
+
+        return Token(
+            original=original,
+            normalized=normalized,
+            position=position,
+            source_span=(start, end),
+            is_unknown=is_unknown_flag,
+            is_segmented=is_segmented,
+            original_fused_form=original_fused_form,
+            segment_index=segment_index,
+        )
+
+    def _is_likely_unknown(self, word: str) -> bool:
+        if any(ch.isdigit() for ch in word):
+            return True
+        if re.search(r"[^a-zàâéèêîôùûòóìí'’-]", word):
+            return True
+        return False

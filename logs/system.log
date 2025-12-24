@@ -1,0 +1,9 @@
+2025-12-23 19:11:26,734 - CreoleNLP - WARNING - UNKNOWN_TERM: 'schtroumpf' | Context: Mwen pa konnen kisa yon schtroumpf ye.
+2025-12-23 19:14:49,155 - CreoleNLP - WARNING - UNKNOWN_TERM: 'manje' | Context: Normalizer
+2025-12-23 19:29:20,371 - CreoleNLP - WARNING - UNKNOWN_TERM: 'manje' | Context: Normalizer
+2025-12-23 19:35:51,216 - CreoleNLP - WARNING - UNKNOWN_TERM: 'manje' | Context: Normalizer
+2025-12-23 20:08:41,342 - CreoleNLP - WARNING - UNKNOWN_TERM: 'string' | Context: Normalizer
+2025-12-23 20:20:29,692 - CreoleNLP - WARNING - UNKNOWN_TERM: 'kondwi' | Context: Normalizer
+2025-12-23 20:20:29,694 - CreoleNLP - WARNING - UNKNOWN_TERM: 'nan' | Context: Normalizer
+2025-12-23 20:27:13,640 - CreoleNLP - WARNING - UNKNOWN_TERM: 'nan' | Context: Normalizer
+2025-12-23 20:42:14,853 - CreoleNLP - WARNING - UNKNOWN_TERM: 'nan' | Context: Normalizer
