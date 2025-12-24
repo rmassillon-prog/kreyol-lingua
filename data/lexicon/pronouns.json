@@ -1,0 +1,75 @@
+{
+  "surface_forms": {
+    "mwen": {
+      "person": 1,
+      "number": "SG",
+      "canonical": "mwen",
+      "type": "independent",
+      "note": "Standard form"
+    },
+    "moin": {
+      "person": 1,
+      "number": "SG",
+      "canonical": "mwen",
+      "type": "independent",
+      "note": "Alternate spelling"
+    },
+    "m": {
+      "person": 1,
+      "number": "SG",
+      "canonical": "mwen",
+      "type": "independent_reduced",
+      "note": "Can stand alone or fuse"
+    },
+    "ou": {
+      "person": 2,
+      "number": "SG",
+      "canonical": "ou",
+      "type": "independent"
+    },
+    "w": {
+      "person": 2,
+      "number": "SG",
+      "canonical": "ou",
+      "type": "dependent_clitic",
+      "note": "Must attach to verb"
+    },
+    "li": {
+      "person": 3,
+      "number": "SG",
+      "canonical": "li",
+      "type": "independent"
+    },
+    "l": {
+      "person": 3,
+      "number": "SG",
+      "canonical": "li",
+      "type": "dependent_clitic"
+    },
+    "nou": {
+      "person": 1,
+      "number": "PL",
+      "canonical": "nou",
+      "type": "independent"
+    },
+    "n": {
+      "person": 1,
+      "number": "PL",
+      "canonical": "nou",
+      "type": "dependent_clitic"
+    },
+    "yo": {
+      "person": 3,
+      "number": "PL",
+      "canonical": "yo",
+      "type": "independent"
+    },
+    "y": {
+      "person": 3,
+      "number": "PL",
+      "canonical": "yo",
+      "type": "dependent_clitic"
+    }
+  }
+}
+
