@@ -1,0 +1,34 @@
+{
+  "markers": {
+    "ap": {
+      "type": "aspect",
+      "label": "PROGRESSIVE",
+      "english_equivalent": "is -ing",
+      "variants": ["ape"]
+    },
+    "te": {
+      "type": "tense",
+      "label": "PAST",
+      "english_equivalent": "was/did",
+      "variants": ["t"]
+    },
+    "prale": {
+      "type": "tense",
+      "label": "FUTURE_PROXIMATE",
+      "english_equivalent": "going to",
+      "variants": ["pral", "pou"]
+    },
+    "a": {
+      "type": "tense",
+      "label": "FUTURE",
+      "english_equivalent": "will",
+      "variants": ["ava", "va"]
+    },
+    "fenk": {
+      "type": "aspect",
+      "label": "IMMEDIATE_PAST",
+      "english_equivalent": "just",
+      "variants": []
+    }
+  }
+}
