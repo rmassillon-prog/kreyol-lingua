@@ -1,0 +1,8 @@
+{
+  "definite_articles": {
+    "la": { "variants": ["a", "an", "nan", "lan"], "label": "DET_DEF" }
+  },
+  "indefinite_articles": {
+    "yon": { "variants": ["on", "oun"], "label": "DET_IND" }
+  }
+}
