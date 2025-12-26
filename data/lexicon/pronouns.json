@@ -21,3 +21,6 @@
     "li": { "variants": ["l", "l'"], "tags": ["POS:PRON", "DEF:he/she/it"] }
   }
 }
+{
+  "grangou": { "tags": ["POS:VERB", "DEF:to be hungry"] }
+}
