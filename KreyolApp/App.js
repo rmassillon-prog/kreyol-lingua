@@ -222,3 +222,19 @@ const speak = (textToSpeak) => {
       rate: 0.65 // Even slower helps the two-syllable separation
     });
   };
+const speak = (textToSpeak) => {
+    let phoneticText = textToSpeak
+      .toLowerCase()
+      // Adding 'zhay' or 'jay' forces the French voice to pronounce the 2nd syllable
+      .replace(/manje/g, 'man-zhay') 
+      .replace(/mwen/g, 'mou-en')
+      .replace(/grangou/g, 'gran-goo')
+      .replace(/kondwi/g, 'kon-dwee')
+      .replace(/ape/g, 'ah-pay'); // Prevents 'ap' sound for 'ape'
+
+    Speech.speak(phoneticText, { 
+      language: 'fr-FR', 
+      pitch: 0.9, 
+      rate: 0.60 // Keeping it very slow so the syllables stay separated
+    });
+  };
