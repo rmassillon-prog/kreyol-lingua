@@ -207,3 +207,18 @@ const styles = StyleSheet.create({
   favText: { fontSize: 16, flex: 1 },
   favActions: { flexDirection: 'row' }
 });
+const speak = (textToSpeak) => {
+    let phoneticText = textToSpeak
+      .toLowerCase()
+      // Use a hyphen to force a second syllable
+      .replace(/manje/g, 'mahn-jay') 
+      .replace(/mwen/g, 'mou-en')
+      .replace(/grangou/g, 'grahn-goo')
+      .replace(/kondwi/g, 'kon-dwee');
+
+    Speech.speak(phoneticText, { 
+      language: 'fr-FR', 
+      pitch: 0.85, 
+      rate: 0.65 // Even slower helps the two-syllable separation
+    });
+  };
