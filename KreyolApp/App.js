@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, Keyboard, ScrollView } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as Speech from 'expo-speech';
 
@@ -11,20 +10,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [favorites, setFavorites] = useState([]);
 
-  useEffect(() => { loadFavorites(); }, []);
-
-  const loadFavorites = async () => {
-    try {
-      const saved = await AsyncStorage.getItem('favorites');
-      if (saved) setFavorites(JSON.parse(saved));
-    } catch (e) { console.log(e); }
-  };
-
-  const saveToFavorites = async () => {
+  const saveToFavorites = () => {
     if (!result || favorites.includes(result)) return;
-    const newFavs = [result, ...favorites];
-    setFavorites(newFavs);
-    await AsyncStorage.setItem('favorites', JSON.stringify(newFavs));
+    setFavorites([result, ...favorites]);
   };
 
   const analyzeText = async () => {
@@ -41,7 +29,7 @@ export default function App() {
   };
 
   const speak = (textToSpeak) => {
-    // YOUR PHONETIC HACKS
+    // YOUR SUCCESSFUL PHONETIC HACKS
     let phoneticText = textToSpeak.toLowerCase()
       .replace(/\bap\b/g, 'app')
       .replace(/mache/g, 'maché')
@@ -83,7 +71,7 @@ export default function App() {
       ) : null}
 
       <View style={styles.favSection}>
-        <Text style={styles.favTitle}>Favorites</Text>
+        <Text style={styles.favTitle}>Session Favorites</Text>
         {favorites.map((f, i) => (
           <View key={i} style={styles.favItem}>
             <Text style={{flex: 1}}>{f}</Text>
@@ -97,7 +85,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { padding: 20, paddingTop: 60 },
-  title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 20 },
+  title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#003366' },
   input: { backgroundColor: '#fff', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#ccc' },
   button: { backgroundColor: '#003366', padding: 15, borderRadius: 10, marginTop: 10, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: 'bold' },
@@ -107,6 +95,6 @@ const styles = StyleSheet.create({
   speakButton: { backgroundColor: '#28a745', padding: 12, borderRadius: 8, marginTop: 10, alignItems: 'center' },
   favButton: { backgroundColor: '#ffc107', padding: 12, borderRadius: 8, marginTop: 5, alignItems: 'center' },
   favSection: { marginTop: 30 },
-  favTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  favItem: { backgroundColor: '#fff', padding: 10, borderRadius: 5, marginBottom: 5, flexDirection: 'row' }
+  favTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#003366' },
+  favItem: { backgroundColor: '#fff', padding: 10, borderRadius: 5, marginBottom: 5, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#ddd' }
 });
