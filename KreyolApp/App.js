@@ -83,3 +83,127 @@ const styles = StyleSheet.create({
   wordChip: { padding: 8, borderRadius: 8, margin: 4, borderWidth: 1, borderColor: '#bddbff' },
   wordText: { fontSize: 16, color: '#333' }
 });
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, Keyboard, ScrollView, FlatList } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import * as Speech from 'expo-speech';
+
+export default function App() {
+  const [inputText, setInputText] = useState('');
+  const [result, setResult] = useState('');
+  const [tokens, setTokens] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [favorites, setFavorites] = useState([]);
+
+  useEffect(() => { loadFavorites(); }, []);
+
+  const loadFavorites = async () => {
+    const saved = await AsyncStorage.getItem('favorites');
+    if (saved) setFavorites(JSON.parse(saved));
+  };
+
+  const saveToFavorites = async () => {
+    if (!result || favorites.includes(result)) return;
+    const newFavs = [result, ...favorites];
+    setFavorites(newFavs);
+    await AsyncStorage.setItem('favorites', JSON.stringify(newFavs));
+  };
+
+  const removeFavorite = async (item) => {
+    const filtered = favorites.filter(f => f !== item);
+    setFavorites(filtered);
+    await AsyncStorage.setItem('favorites', JSON.stringify(filtered));
+  };
+
+  const analyzeText = async () => {
+    if (!inputText) return;
+    setLoading(true);
+    Keyboard.dismiss();
+    try {
+      const response = await axios.post('https://kreyol-lingua.onrender.com/analyze', { text: inputText });
+      setResult(response.data.normalized_text);
+      setTokens(response.data.tokens);
+    } catch (error) {
+      alert("Error connecting to the brain!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const speak = (textToSpeak) => {
+    // Phonetic Hack: Swap common mispronounced words
+    let phoneticText = textToSpeak
+      .replace(/mwen/g, 'mou-en')
+      .replace(/manje/g, 'man-jay')
+      .replace(/kouri/g, 'koo-ree');
+
+    Speech.speak(phoneticText, { language: 'fr-FR', pitch: 0.85, rate: 0.75 });
+  };
+
+  const showWordInfo = (token) => {
+    const definition = token.tags.find(t => t.startsWith('DEF:'))?.split(':')[1] || 'No definition found';
+    const pos = token.tags.find(t => t.startsWith('POS:'))?.split(':')[1] || 'Unknown';
+    alert(`Word: ${token.normalized}\nMeaning: ${definition}\nType: ${pos}`);
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Kreyòl Lingua</Text>
+      <TextInput style={styles.input} placeholder="Type in Kreyòl..." value={inputText} onChangeText={setInputText} multiline />
+      <TouchableOpacity style={styles.button} onPress={analyzeText}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Analyze</Text>}
+      </TouchableOpacity>
+      
+      {result ? (
+        <View style={styles.resultBox}>
+          <View style={styles.chipContainer}>
+            {tokens.map((token, index) => (
+              <TouchableOpacity key={index} onPress={() => showWordInfo(token)}
+                style={[styles.wordChip, { backgroundColor: token.original !== token.normalized ? '#fff3cd' : '#fff' }]}>
+                <Text style={styles.wordText}>{token.normalized}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={styles.speakButton} onPress={() => speak(result)}><Text style={styles.buttonText}>🔊 Listen</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.favButton} onPress={saveToFavorites}><Text style={styles.buttonText}>⭐ Save</Text></TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
+
+      <View style={styles.favSection}>
+        <Text style={styles.favTitle}>Your Favorites</Text>
+        {favorites.map((item, index) => (
+          <View key={index} style={styles.favItem}>
+            <Text style={styles.favText}>{item}</Text>
+            <View style={styles.favActions}>
+              <TouchableOpacity onPress={() => speak(item)}><Text style={{fontSize: 20}}>🔊</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => removeFavorite(item)}><Text style={{fontSize: 20, marginLeft: 15}}>🗑️</Text></TouchableOpacity>
+            </View>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flexGrow: 1, backgroundColor: '#f5f5f5', padding: 20, paddingTop: 60 },
+  title: { fontSize: 32, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#003366' },
+  input: { width: '100%', height: 100, backgroundColor: '#fff', padding: 15, borderRadius: 10, borderColor: '#ccc', borderWidth: 1 },
+  button: { backgroundColor: '#003366', padding: 15, borderRadius: 10, marginTop: 10, alignItems: 'center' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  resultBox: { marginTop: 20, padding: 15, backgroundColor: '#fff', borderRadius: 10, elevation: 3 },
+  chipContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
+  wordChip: { padding: 8, borderRadius: 8, margin: 4, borderWidth: 1, borderColor: '#ddd' },
+  wordText: { fontSize: 16 },
+  actionRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  speakButton: { backgroundColor: '#28a745', padding: 12, borderRadius: 8, flex: 1, marginRight: 5, alignItems: 'center' },
+  favButton: { backgroundColor: '#ffc107', padding: 12, borderRadius: 8, flex: 1, marginLeft: 5, alignItems: 'center' },
+  favSection: { marginTop: 40, borderTopWidth: 1, borderTopColor: '#ccc', paddingTop: 20 },
+  favTitle: { fontSize: 22, fontWeight: 'bold', color: '#003366', marginBottom: 15 },
+  favItem: { backgroundColor: '#fff', padding: 15, borderRadius: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  favText: { fontSize: 16, flex: 1 },
+  favActions: { flexDirection: 'row' }
+});
