@@ -98,3 +98,19 @@ const styles = StyleSheet.create({
   favTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#003366' },
   favItem: { backgroundColor: '#fff', padding: 10, borderRadius: 5, marginBottom: 5, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#ddd' }
 });
+const speak = (textToSpeak) => {
+    let phoneticText = textToSpeak.toLowerCase()
+      .replace(/\bap\b/g, 'app')      // Forced 'p'
+      .replace(/mache/g, 'maché')     // Forced 'e'
+      .replace(/manje/g, 'man-zhay')  // Two syllables
+      .replace(/mwen/g, 'mou-en')     // Nasal fix
+      .replace(/ale/g, 'all-ay')      // Fixes 'al' clipping
+      .replace(/pale/g, 'pah-lay')    // Fixes 'pal' clipping
+      .replace(/li/g, 'lee');         // Clearer 'i' sound
+
+    Speech.speak(phoneticText, { 
+      language: 'fr-FR', 
+      pitch: 0.85,  // Slightly lower pitch for a more natural resonance
+      rate: 0.60    // Keeping it slow so the phonetic hacks have time to breathe
+    });
+  };
