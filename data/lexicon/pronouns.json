@@ -1,0 +1,7 @@
+{
+  "pronouns": {
+    "mwen": { "variants": ["m", "m'"], "tags": ["POS:PRON", "DEF:I/me/my"] },
+    "ou": { "variants": ["w", "w'"], "tags": ["POS:PRON", "DEF:you/your"] },
+    "li": { "variants": ["l", "l'"], "tags": ["POS:PRON", "DEF:he/she/it"] }
+  }
+}

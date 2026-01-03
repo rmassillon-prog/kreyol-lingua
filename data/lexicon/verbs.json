@@ -1,0 +1,7 @@
+{
+  "manje": { "tags": ["POS:VERB", "DEF:to eat"] },
+  "mache": { "tags": ["POS:VERB", "DEF:to walk"] },
+  "grangou": { "tags": ["POS:VERB", "DEF:to be hungry"] },
+  "kondwi": { "tags": ["POS:VERB", "DEF:to drive"] },
+  "kouri": { "tags": ["POS:VERB", "DEF:to run"] }
+}
